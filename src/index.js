@@ -44,7 +44,7 @@ app.post("/users", async (req, res) => {
 app.get("/users", async (req,res) => {
 
     try {
-        await User.find({})
+        const users = await User.find({})
         res.send(users);
     } catch (error) {
         res.status(500).send()
@@ -53,18 +53,19 @@ app.get("/users", async (req,res) => {
     
 })
 
-app.get("/users/:id", (req, res) => {
+app.get("/users/:id", async (req, res) => {
     const _id = req.params.id
-    User.findById(_id).then( (result) => {
-        console.log(_id)
-        if(!result) {
+
+    try {
+        const user = await User.findById(_id);
+        if(!user) {
             return res.status(404).send()
         }
-
-        res.send(result)
-    }).catch((e) => {
+        res.send(user)
+    } catch (error) {
         res.status(500).send()
-    })
+    }
+    
 })
 
 
@@ -73,35 +74,41 @@ app.get("/users/:id", (req, res) => {
 // tasks endpoint
 //
 
-app.post("/tasks", (req, res) => {
+app.post("/tasks", async (req, res) => {
     const newTask = new Task(req.body)
-    newTask.save().then(() => {
-        res.status(201).send("It was successfull")
-    }).catch((err) => {
+
+    try {
+        await newTask.save();
+        res.status(201).send("It was succesfull")
+    } catch (error) {
         res.status(400).send(error)
-    })
+    }
+    
 })
 
-app.get("/tasks", (req,res) => {
+app.get("/tasks", async (req,res) => {
     //get all tasks
-    Task.find({}).then( (task) => {
-        res.send(task) //if empty we get an empty array back
-    }).catch((e) => {
+
+    try {
+        const task = await Task.find();
+        res.send(task)
+    } catch (error) {
         res.status(500).send()
-    })
+    }
+    
 })
 
-app.get("/tasks/:id", (req, res) => {
+app.get("/tasks/:id", async (req, res) => {
     const _id = req.params.id;
-    Task.findById(_id).then((task) => {
+    try {
+        const task = await Task.findById(_id);
         if(!task){
-            return res.status(404).send()
+            return res.status(404).send();
         }
-
-        res.send(task)
-    }).catch((e) => {
-        res.status(500).send(e)
-    })
+        res.send(task);
+    } catch (error) {
+        res.status(500).send(error)
+    }
 })
 
 
