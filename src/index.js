@@ -35,7 +35,7 @@ app.post("/users", async (req, res) => {
         await newUser.save() // we get a promise back from this
         res.status(201).send(user);
     } catch (error) {
-        res.status(400).send(error);
+        res.status(400).send(error); // It was a bad request if you weren't able to create it. 
     }
     
 })
@@ -47,11 +47,12 @@ app.get("/users", async (req,res) => {
         const users = await User.find({})
         res.send(users);
     } catch (error) {
-        res.status(500).send()
+        res.status(500).send(error)
     }
     
     
 })
+
 
 app.get("/users/:id", async (req, res) => {
     const _id = req.params.id
@@ -68,11 +69,71 @@ app.get("/users/:id", async (req, res) => {
     
 })
 
+app.patch("/users/:id", async (req, res) => {
+    //get valid keys
+    const updates = Object.keys(req.body)
+    const allowedUpdates = ['name', 'email', 'age', 'password'];
+    const isValidUpdate = updates.every((update) => allowedUpdates.includes(update));
+
+    if(!isValidUpdate){
+        return res.status(400).send("Invalid Updates!")
+    }
+
+    try {
+        const user =  await User.findByIdAndUpdate(req.params.id, req.body,{new: true, runValidators: true})
+        if(!user){
+            return res.send(404).send()
+        }
+        res.send(user);
+    } catch (error) {
+        res.send(400).send()
+    }
+
+
+
+})
+
+
+
+app.delete("/users/:id", async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if(!user)
+        {
+            return res.status(404);
+        }
+
+        res.send(user)
+        
+    } catch (error) {
+        res.status(500).send(error);
+    }
+})
 
 
 //
 // tasks endpoint
 //
+
+app.patch("/tasks/:id", async (req, res) => {
+    // allowed updates
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ['description', 'completed'];
+    const isValidUpdate = updates.every((update) => allowedUpdates.includes(update))
+
+    if(!isValidUpdate){
+        return res.status(400).send("Invalid Update");
+    }
+    try {
+        const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true})
+        if(!updatedTask){
+            return res.status(404).send()
+        }
+        res.send(updatedTask);
+    } catch (error) {
+        res.status(404).send(error)
+    }
+})
 
 app.post("/tasks", async (req, res) => {
     const newTask = new Task(req.body)
@@ -112,6 +173,25 @@ app.get("/tasks/:id", async (req, res) => {
 })
 
 
+app.delete("/tasks/:id", async (req, res) => {
+    try {
+
+        const task = await Task.findByIdAndDelete(req.params.id)
+
+        if(!task){
+            res.status(404).send()
+        }
+
+        res.send(task)
+        
+    } catch (error) {
+        res.status(500).send(error)
+    }
+})
+
+
+
+
 
 
 /**********************************************
@@ -124,133 +204,3 @@ app.listen(port, () => {
 
 
 
-
-/*
-    Challenges
-
-    Goal: Use async/ await
-
-    1. Create deleteTaskAndCount as an async function
-        -Accept id of task to remove
-    2. Use await to delete Task to remove
-    3. Return the count
-    4. Call the function and attach then/catch to log results
-    5. Test your work
-
-    Goal: Mess around with promis chaining
-
-    1. Create promis3-chaining-2.js
-    2. Load in mongoose and task model
-    3. Remove a given task by id
-    4. Get and print the total number of incomplete tasks
-    5. Test your work
-
-    
-    Goal: Setup the trask reading endpoints
-
-    1. Create an endpoint for fetching all tasks
-    2. Crete an endpoint for fetching a task by its id
-    3. Setup new requests in Postman and test your work
-
-
-    Goal: Setup the task creation enpoint
-
-    1) Create a separate file for the task model (load it into index.js)
-    2) Create the task creation endpoint (handle success and error)
-    3) Test the endpoint
-
-
-    Old code
-
-    User.find({}).then((users) => {
-        res.send(users)
-    }).catch((e) => {
-        res.status(500).send()
-    })
-
-    newUser.save().then(() => {
-        res.status(201).send("It wass succesful")
-    }).catch((error) => {
-        res.status(400).send(error);
-    })
-    old routes code
-
-    //
-// Users endpoint
-//
-
-app.post("/users", (req, res) => {
-    const newUser = new User(req.body);
-    newUser.save().then(() => {
-        res.status(201).send("It wass succesful")
-    }).catch((error) => {
-        res.status(400).send(error);
-    })
-})
-
-
-app.get("/users", (req,res) => {
-    User.find({}).then((users) => {
-        res.send(users)
-    }).catch((e) => {
-        res.status(500).send()
-    })
-    
-})
-
-app.get("/users/:id", (req, res) => {
-    const _id = req.params.id
-    User.findById(_id).then( (result) => {
-        console.log(_id)
-        if(!result) {
-            return res.status(404).send()
-        }
-
-        res.send(result)
-    }).catch((e) => {
-        res.status(500).send()
-    })
-})
-
-
-
-//
-// tasks endpoint
-//
-
-app.post("/tasks", (req, res) => {
-    const newTask = new Task(req.body)
-    newTask.save().then(() => {
-        res.status(201).send("It was successfull")
-    }).catch((err) => {
-        res.status(400).send(error)
-    })
-})
-
-app.get("/tasks", (req,res) => {
-    //get all tasks
-    Task.find({}).then( (task) => {
-        res.send(task) //if empty we get an empty array back
-    }).catch((e) => {
-        res.status(500).send()
-    })
-})
-
-app.get("/tasks/:id", (req, res) => {
-    const _id = req.params.id;
-    Task.findById(_id).then((task) => {
-        if(!task){
-            return res.status(404).send()
-        }
-
-        res.send(task)
-    }).catch((e) => {
-        res.status(500).send(e)
-    })
-})
-
-
-
-
-
-*/
