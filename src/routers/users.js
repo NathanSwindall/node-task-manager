@@ -13,6 +13,16 @@ UserRouter.post("/users", async (req, res) => {
     
 })
 
+UserRouter.post("/users/login", async (req, res) => {
+    
+    try {
+        const user = await User.findCredentials(req.body.email,req.body.password)
+        const token = await user.generateAuthToken()
+        res.send({user, token})
+    } catch (error) {
+        res.status(400).send("Unable to login")
+    }
+})
 
 UserRouter.get("/users", async (req,res) => {
 

@@ -1,6 +1,6 @@
 const express = require("express");
 require("./db/mongoose.js") // start the mongoose connection
-const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 
 /*****************************
@@ -49,5 +49,13 @@ app.listen(port, () => {
 })
 
 
+/*
+ Goal: Have signup back auth token
+
+ 1. Generate a token for the saved user
+ 2. Send back the token and the user
+ 3. Create a new user from Poastman and confirm the token is there
 
 
+
+*/

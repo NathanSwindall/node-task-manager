@@ -21,7 +21,7 @@ taskRouter.patch("/tasks/:id", async (req, res) => {
         })
 
         await updatedTask.save()
-        //const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true})
+        
         if(!updatedTask){
             return res.status(404).send()
         }
